@@ -1,0 +1,49 @@
+#!/usr/bin/osascript
+
+set dest_string to "Choose a destination folder. If it does not exist," & return & ¬
+	"make a new folder (give it a name), and choose the blank folder"
+try
+	set srcfolder to POSIX path of (choose folder with prompt "Choose a source folder:")
+	set destfolder to POSIX path of (choose folder with prompt dest_string)
+on error errmsg number errnbr
+	if errnbr = -128 then
+		display dialog "User cancelled."
+	end if
+	return
+end try
+
+set argvector to srcfolder's quoted form & space & destfolder's quoted form
+
+if (dupe_folder(argvector) as boolean) is equal to true then
+	display dialog "New folders structure complete:" & return & destfolder as text
+else
+	display dialog "Ruby structure duplication process has failed."
+end if
+
+return
+
+on dupe_folder(args)
+
+
+	return do shell script "ruby <<'EOF' - " & args & "
+
+#!/usr/bin/ruby
+# coding: utf-8
+
+require 'find'
+require 'fileutils'
+
+source, dest = ARGV
+
+IGNORE = ['.app', '.scptd', '.rtfd', '.pages']
+
+Find.find(source) do |item|
+   next if !File.directory?(item) || item == source
+   Find.prune if IGNORE.include?(File.extname(item))
+   FileUtils.mkdir_p(dest + item.gsub(source, ''))
+end
+
+puts $?.success?
+EOF"
+
+end dupe_folder
