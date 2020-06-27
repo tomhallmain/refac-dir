@@ -2,7 +2,7 @@
 
 
 folder="$1"
-mdlsdata=$( ls $folder | xargs -I{lin} echo \"$folder{lin}\" | xargs mdls )
+mdlsdata=$(find "$folder" -type f | xargs -I % mdls "%")
 
 echo "$mdlsdata"
 
